@@ -1,0 +1,21 @@
+/* styles.css or any global CSS file */
+
+/* style.css */
+.toast-message {
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+@media (max-width: 768px) {
+    .Toastify__toast-container {
+        width: 90% !important;
+        left: 5% !important;
+        transform: none !important;
+    }
+}
+
+
+  

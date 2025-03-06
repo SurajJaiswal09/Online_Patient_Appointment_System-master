@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Poppins:wght@500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+  font-family: 'Poppins','sans-serif';
+}
+
+::selection {
+  background-color: black; /* Change this to your desired color */
+  color: white; 
+  /* Change this to the text color you want when selected */
+}
+
+* {
+  cursor: none;
+}
+
+#custom-cursor {
+  width: 15px; /* Adjust size as needed */
+  height: 15px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #000; /* Customize color */
+  border-radius: 50%; /* Make it circular */
+  pointer-events: none; /* Prevents the cursor from blocking other elements */
+  z-index: 9999; /* Make sure it's on top */
+  will-change: transform; /* Optimize for smoother transforms */
+}
+
+
+
+/* Tailwind CSS for Calendar */
+.react-calendar {
+  @apply rounded-lg border border-gray-300 shadow-md;
+}
+
+.react-calendar__navigation {
+  @apply flex items-center justify-between p-2 bg-gray-200 rounded-t-lg;
+}
+
+.react-calendar__navigation button {
+  @apply text-gray-700 p-2 rounded-full hover:bg-gray-300;
+}
+
+.react-calendar__navigation button:enabled:hover {
+  @apply bg-gray-300;
+}
+
+.react-calendar__navigation button:disabled {
+  @apply text-gray-400 cursor-not-allowed;
+}
+
+.react-calendar__month-view__weekdays {
+  @apply text-gray-600 font-medium;
+}
+
+.react-calendar__month-view__days {
+  @apply flex flex-wrap;
+}
+
+.react-calendar__tile {
+  @apply p-2 text-center cursor-pointer transition-colors duration-150 ease-in-out;
+}
+
+.react-calendar__tile--active {
+  @apply bg-blue-500 text-white rounded-full;
+}
+
+.react-calendar__tile--now {
+  @apply bg-blue-100 text-blue-600 font-bold rounded-full;
+}
+
+.react-calendar__tile:hover {
+  @apply bg-blue-200;
+}
