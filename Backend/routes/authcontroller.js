@@ -1,64 +1,60 @@
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import Clerk from '../models/Clerk.model.js';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.model.js';
 
-// Function to initialize default clerk if not exists
+// Initialize default clerk account for system access
 export const initializeDefaultClerk = async () => {
-    try {
-        const defaultClerk = await Clerk.findOne({ username: 'clerk' });
-        if (!defaultClerk) {
-            const hashedPassword = await bcrypt.hash('password123', 10);
-            await Clerk.create({
-                username: 'clerk',
-                password: hashedPassword
-            });
-            console.log('Default clerk created successfully');
-        } else {
-            console.log('Default clerk already exists');
-        }
-    } catch (error) {
-        console.error('Error initializing default clerk:', error);
+  try {
+    const existingClerk = await User.findOne({ username: 'clerk' });
+    if (!existingClerk) {
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      const clerk = new User({
+        username: 'clerk',
+        password: hashedPassword,
+        role: 'clerk'
+      });
+      await clerk.save();
+      console.log('Default clerk created successfully');
     }
+  } catch (error) {
+    console.error('Error creating default clerk:', error);
+  }
 };
 
 export const login = async (req, res) => {
-    try {
-        console.log('Login attempt received:', { username: req.body.username });
-        
-        const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
 
-        // Find clerk by username
-        const clerk = await Clerk.findOne({ username });
-        if (!clerk) {
-            console.log('Clerk not found:', username);
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        // Verify 
-        const isValidPassword = await bcrypt.compare(password, clerk.password);
-        if (!isValidPassword) {
-            console.log('Invalid password for clerk:', username);
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        if (!process.env.JWT_SECRET) {
-            console.error('JWT_SECRET is not defined in environment variables');
-            return res.status(500).json({ message: 'Server configuration error' });
-        }
-
-        const token = jwt.sign(
-            { userId: clerk._id, role: 'clerk' },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        console.log('Login successful for clerk:', username);
-        return res.json({ token, role: 'clerk' });
-    } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({ 
-            message: 'Server error',
-            error: error.message 
-        });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    console.log('User logged in successfully');
+    res.json({ token, role: user.role });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    console.log('User logged out successfully');
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Error during logout' });
+  }
 };

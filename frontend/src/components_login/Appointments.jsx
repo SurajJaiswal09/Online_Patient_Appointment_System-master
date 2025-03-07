@@ -7,11 +7,32 @@ function Appointments() {
   const [appointmentsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("ascName");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/getAppointment")
-      .then(response => setAppointments(response.data))
-      .catch(err => console.log(err));
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        const response = await axios.get("http://localhost:5000/getAppointment", {
+          headers: {
+            'Authorization': token
+          }
+        });
+        setAppointments(response.data);
+      } catch (error) {
+        console.error('Failed to fetch appointments:', error);
+        setError(error.response?.data?.message || 'Failed to load appointments');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
   }, []);
 
   const handleSearchChange = (event) => {
@@ -55,6 +76,22 @@ function Appointments() {
   }
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <>

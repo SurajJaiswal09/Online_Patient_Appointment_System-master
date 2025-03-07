@@ -11,7 +11,10 @@ function App() {
       <div className='dark:bg-slate-900 dark:text-white'>
         <Cursor/>
         <Routes>
+          {/* Public routes accessible without authentication */}
           <Route path='/' element={<Public/>} />
+          
+          {/* Protected routes requiring authentication */}
           <Route path='/Dashboard/*' element={<Private/>} />
           <Route path='/Doctors/*' element={<Private/>} />
           <Route path='/Appointments/*' element={<Private/>} />

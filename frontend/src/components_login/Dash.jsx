@@ -12,29 +12,55 @@ const Dash = () => {
   const [totalDoctors] = useState(4); // Assuming you have a static number of doctors
   const [reminders, setReminders] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch total number of appointments
+  // Fetch appointments with auth token
   useEffect(() => {
     const fetchTotalAppointments = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/appointments/total');
-        setTotalAppointments(res.data.count);
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        const res = await axios.get('http://localhost:5000/getAppointment', {
+          headers: {
+            'Authorization': token
+          }
+        });
+        setTotalAppointments(res.data.length);
       } catch (error) {
         console.error('Failed to fetch total appointments:', error);
+        setError(error.response?.data?.message || 'Failed to load appointments data');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchTotalAppointments();
   }, []);
 
-  // Fetch reminders
+  // Fetch reminders with auth token
   useEffect(() => {
     const fetchReminders = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/reminders');
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        const res = await axios.get('http://localhost:5000/reminders', {
+          headers: {
+            'Authorization': token
+          }
+        });
         setReminders(res.data);
       } catch (error) {
         console.error('Failed to fetch reminders:', error);
+        setError(error.response?.data?.message || 'Failed to load reminders');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -44,22 +70,56 @@ const Dash = () => {
   // Add reminder
   const addReminder = async (reminder) => {
     try {
-      const res = await axios.post('http://localhost:5000/reminders', reminder);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const res = await axios.post('http://localhost:5000/reminders', reminder, {
+        headers: {
+          'Authorization': token
+        }
+      });
       setReminders([...reminders, res.data]);
     } catch (error) {
       console.error('Failed to add reminder:', error);
+      setError(error.response?.data?.message || 'Failed to add reminder');
     }
   };
 
   // Delete reminder
   const deleteReminder = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/reminders/${id}`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      await axios.delete(`http://localhost:5000/reminders/${id}`, {
+        headers: {
+          'Authorization': token
+        }
+      });
       setReminders(reminders.filter((reminder) => reminder._id !== id));
     } catch (error) {
       console.error('Failed to delete reminder:', error);
+      setError(error.response?.data?.message || 'Failed to delete reminder');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

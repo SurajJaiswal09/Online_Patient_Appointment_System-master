@@ -30,7 +30,7 @@ function Login() {
         localStorage.setItem('role', response.data.role); 
         toast.success('Login successful!');
         closeModal();
-        navigate('/dashboard');
+        navigate('/Dashboard');
       }
     } catch (error) {
       console.error('Login error:', error.response?.data);

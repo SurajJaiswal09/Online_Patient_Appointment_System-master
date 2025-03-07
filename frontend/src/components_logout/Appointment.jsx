@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import appointment from "../../public/appointment.jpg";
+import axios from 'axios';
 import "../../src/style.css";
 
 function Appointment() {
@@ -20,19 +21,11 @@ function Appointment() {
 
   
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/appointments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData), // Send form data as JSON
-      });
-      const data = await response.json();
+      const response = await axios.post("http://localhost:5000/api/appointments", formData);
       
-      
-      if (response.ok) {
+      if (response.status === 201) {
         toast.success(
           <div>
             <p className="text-black font-semibold text-lg mb-0 p-0">
@@ -44,26 +37,29 @@ function Appointment() {
           </div>,
           {
             position: "top-center",
-            className:
-              "bg-green-300 text-black font-semibold toast-message w-96",
+            className: "bg-green-300 text-black font-semibold toast-message w-96",
             progressClassName: "bg-green-700",
           }
         );
-      } else {
         
-        toast.error("Failed to book appointment: " + data.message, {
-          position: "top-center",
-          className: "bg-red-500 text-white toast-message",
-          progressClassName: "bg-red-700",
+        // Clear form
+        setFormData({
+          name: "",
+          email: "",
+          message: "",
+          datetime: "",
         });
       }
     } catch (error) {
-      
-      toast.error("Error: " + error.message, {
-        position: "top-center",
-        className: "bg-red-500 text-white toast-message",
-        progressClassName: "bg-red-700",
-      });
+      console.error("Appointment booking error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to book appointment. Please try again.",
+        {
+          position: "top-center",
+          className: "bg-red-500 text-white toast-message",
+          progressClassName: "bg-red-700",
+        }
+      );
     }
   };
 
@@ -93,6 +89,7 @@ function Appointment() {
               type="text"
               name="name"
               placeholder="Name"
+              value={formData.name}
               className="input input-bordered input-primary w-full max-w-xs"
               required
               onChange={handleChange}
@@ -103,6 +100,7 @@ function Appointment() {
               type="email"
               name="email"
               placeholder="Email id"
+              value={formData.email}
               className="input input-bordered input-primary w-full max-w-xs"
               required
               onChange={handleChange}
@@ -113,6 +111,7 @@ function Appointment() {
               name="message"
               className="textarea textarea-primary w-1/2"
               placeholder="Message"
+              value={formData.message}
               required
               onChange={handleChange}
             ></textarea>
@@ -122,6 +121,7 @@ function Appointment() {
             <input
               type="datetime-local"
               name="datetime"
+              value={formData.datetime}
               required
               onChange={handleChange}
               className="dark:bg-slate-900 dark:text-white"
